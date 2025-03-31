@@ -1,0 +1,14 @@
+<div class="chat-session">
+  <div class="session-info">
+    <ng-container *ngIf="sessionId; else noSession">
+      <p class="session-status">Active Session ID: <span class="session-id">{{ sessionId }}</span></p>
+      <button class="remove-btn" (click)="removeSession()">Remove Session</button>
+    </ng-container>
+    <ng-template #noSession>
+      <p class="session-status">No active session</p>
+      <button class="create-btn" (click)="createSession()" [disabled]="isLoading">
+        {{ isLoading ? 'Creating...' : 'Create New Session' }}
+      </button>
+    </ng-template>
+  </div>
+</div>

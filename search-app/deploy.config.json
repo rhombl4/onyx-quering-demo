@@ -1,0 +1,11 @@
+{
+  "aws": {
+    "profile": "sandbox_sso",
+    "region": "eu-central-1",
+    "bucket": "studytube-onyx",
+    "paths": {
+      "versions": "versions/",
+      "public": "pub/"
+    }
+  }
+}

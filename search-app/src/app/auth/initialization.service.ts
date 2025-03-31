@@ -14,26 +14,11 @@ export class InitializationService {
    * Initialize the application with the API token
    * This should be called during app initialization
    */
-  initializeApp(): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-      try {
-        // In a production app, you would typically:
-        // 1. Load the token from a secure backend API
-        // 2. Or use an OAuth flow to obtain the token
-        // 3. Never hardcode tokens in the source code
-        
-        // For this demo, we're using the provided token
-        // In a real application, consider using environment variables
-        // or a secure backend API to provide the token
-        this.tokenService.setToken(this.API_TOKEN);
-        
-        console.log('App initialized with API token');
-        resolve(true);
-      } catch (error) {
-        console.error('Error initializing app:', error);
-        resolve(false);
-      }
-    });
+  async initializeApp(): Promise<void> {
+    // Set the token during initialization
+    const token = this.API_TOKEN;
+    this.tokenService.setToken(token);
+    return Promise.resolve();
   }
 
   /**

@@ -1,35 +1,29 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, map, of, tap } from 'rxjs';
-import { TokenService } from '../auth/token.service';
+import { Observable, map, catchError, of } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
+import { TokenService } from '../auth/token.service';
+import { environment } from '../../environments/environment';
 
-export interface ChatSession {
+interface ChatSessionResponse {
   chat_session_id: string;
-}
-
-export interface MessageResponse {
-  answer: string;
-  sources?: any[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class OnyxService {
-  // API configuration
-  private readonly ONYX_API_URL = 'https://sonix.agibot.click/';
-  private readonly SESSION_COOKIE_NAME = 'onyx_chat_session_id';
+  private readonly API_URL = environment.apiUrl;
+  private readonly SESSION_COOKIE_KEY = 'chat_session_id';
 
   constructor(
     private http: HttpClient,
-    private tokenService: TokenService,
-    private cookieService: CookieService
-  ) { }
+    private cookieService: CookieService,
+    private tokenService: TokenService
+  ) {}
 
   /**
-   * Create a new chat session and store the session ID in a cookie
-   * @returns Observable of the chat session ID
+   * Create a new chat session and store the session ID in cookies
    */
   createChatSession(): Observable<string> {
     const token = this.tokenService.getToken();
@@ -38,115 +32,47 @@ export class OnyxService {
       return of('');
     }
 
-    const headers = this.getAuthHeaders(token);
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
 
-    return this.http.post<ChatSession>(`${this.ONYX_API_URL}/chat/create-chat-session`, {}, { headers })
-      .pipe(
-        map(response => response.chat_session_id),
-        tap(sessionId => {
-          // Store the session ID in a cookie
-          this.cookieService.set(this.SESSION_COOKIE_NAME, sessionId, {
-            path: '/',
-            secure: true,
-            sameSite: 'Strict'
-          });
-          console.log('Chat session created and stored in cookie:', sessionId);
-        }),
-        catchError(error => {
-          console.error('Error creating chat session:', error);
-          return of('');
-        })
-      );
-  }
-
-  /**
-   * Send a message to the chat API
-   * @param message The message to send
-   * @returns Observable of the response
-   */
-  sendMessage(message: string): Observable<MessageResponse> {
-    const token = this.tokenService.getToken();
-    const sessionId = this.getChatSessionId();
-    
-    if (!token || !sessionId) {
-      console.error('Missing token or session ID');
-      return of({ answer: 'Error: Missing authentication or session information.' });
-    }
-
-    const headers = this.getAuthHeaders(token);
-    const payload = {
-      chat_session_id: sessionId,
-      message: message
-    };
-
-    return this.http.post<MessageResponse>(
-      `${this.ONYX_API_URL}/chat/send-message-simple-api/`,
-      payload,
+    return this.http.post<ChatSessionResponse>(
+      `${this.API_URL}/chat/create-chat-session`,
+      { persona_id: 0 },
       { headers }
     ).pipe(
+      map(response => {
+        const sessionId = response.chat_session_id;
+        // Store session ID in cookies with 24 hour expiry
+        this.cookieService.set(this.SESSION_COOKIE_KEY, sessionId, 1);
+        return sessionId;
+      }),
       catchError(error => {
-        console.error('Error sending message:', error);
-        return of({ answer: 'Sorry, there was an error processing your request.' });
+        console.error('Error creating chat session:', error);
+        return of('');
       })
     );
   }
 
   /**
-   * Get the current chat session ID from cookie
-   * @returns The chat session ID or null if not found
+   * Get the current chat session ID from cookies
    */
-  getChatSessionId(): string | null {
-    if (this.cookieService.check(this.SESSION_COOKIE_NAME)) {
-      return this.cookieService.get(this.SESSION_COOKIE_NAME);
-    }
-    return null;
-  }
-
-  /**
-   * Check if a chat session exists in cookies
-   * @returns True if a session exists
-   */
-  hasChatSession(): boolean {
-    return this.cookieService.check(this.SESSION_COOKIE_NAME);
+  getCurrentSessionId(): string {
+    return this.cookieService.get(this.SESSION_COOKIE_KEY) || '';
   }
 
   /**
    * Remove the chat session ID from cookies
-   * This effectively ends the current session
    */
-  removeChatSession(): void {
-    if (this.cookieService.check(this.SESSION_COOKIE_NAME)) {
-      this.cookieService.delete(this.SESSION_COOKIE_NAME, '/');
-      console.log('Chat session removed from cookies');
-    }
+  removeSessionId(): void {
+    this.cookieService.delete(this.SESSION_COOKIE_KEY);
   }
 
   /**
-   * Create authentication headers with the token
-   * @param token API token
-   * @returns HttpHeaders object
+   * Check if a chat session exists
    */
-  private getAuthHeaders(token: string): HttpHeaders {
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-  }
-
-  /**
-   * Generate a curl command for creating a chat session
-   * This is useful for debugging or manual API testing
-   * @returns The curl command string
-   */
-  getCurlForCreateSession(): string {
-    const token = this.tokenService.getToken();
-    if (!token) {
-      return 'No API token available';
-    }
-    
-    return `curl -X POST "${this.ONYX_API_URL}/chat/create-chat-session" \\
-  -H "Authorization: Bearer ${token}" \\
-  -H "Content-Type: application/json" \\
-  -d '{}'`;
+  hasActiveSession(): boolean {
+    return this.cookieService.check(this.SESSION_COOKIE_KEY);
   }
 }

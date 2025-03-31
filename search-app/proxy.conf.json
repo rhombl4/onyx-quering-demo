@@ -1,0 +1,7 @@
+{
+  "/api": {
+    "target": "https://sonix.agibot.click",
+    "secure": true,
+    "changeOrigin": true
+  }
+}
