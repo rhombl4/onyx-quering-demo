@@ -48,7 +48,7 @@ export class ChatSessionComponent implements OnInit {
    * Remove the current session
    */
   removeSession(): void {
-    this.onyxService.removeSessionId();
+    this.onyxService.removeSession();
     this.sessionId = '';
   }
 }

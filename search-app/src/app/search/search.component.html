@@ -1,47 +1,56 @@
 <div class="search-container">
   <div class="search-header">
-    <h1>Search Application</h1>
-    <div class="search-bar">
-      <input 
-        type="text" 
-        [(ngModel)]="searchQuery" 
-        placeholder="Search for anything..."
-        (keyup.enter)="onSearch()"
-        class="search-input"
-      />
-      <button (click)="onSearch()" class="search-button">
-        <span class="search-icon">🔍</span>
-      </button>
-      <button *ngIf="searchQuery" (click)="clearSearch()" class="clear-button">
-        <span class="clear-icon">✕</span>
-      </button>
-    </div>
+    <h1>Chat with Onyx</h1>
   </div>
 
-  <div class="search-results-container">
-    <div *ngIf="isLoading" class="loading">
-      <div class="spinner"></div>
-      <p>Searching...</p>
-    </div>
-
-    <div *ngIf="!isLoading && searchResults.length === 0 && searchQuery" class="no-results">
-      <p>No results found for "{{ searchQuery }}"</p>
-    </div>
-
-    <div *ngIf="!isLoading && searchResults.length > 0" class="results-count">
-      <p>Found {{ searchResults.length }} results for "{{ searchQuery }}"</p>
-    </div>
-
-    <div class="search-results">
-      <div *ngFor="let result of searchResults" class="result-card">
-        <div class="result-image" *ngIf="result.imageUrl">
-          <img [src]="result.imageUrl" [alt]="result.title">
-        </div>
-        <div class="result-content">
-          <h3>{{ result.title }}</h3>
-          <p>{{ result.description }}</p>
+  <div class="chat-container">
+    <div class="messages" *ngIf="messages.length > 0">
+      <div *ngFor="let message of messages" 
+           [class]="'message ' + (message.sender === 'user' ? 'user-message' : 'bot-message')">
+        <div class="message-text">{{ message.text }}</div>
+        <div class="documents" *ngIf="message.documents && message.documents.length > 0">
+          <h4 class="documents-header">Relevant Documents:</h4>
+          <div class="document" *ngFor="let doc of message.documents">
+            <div class="document-title">{{ doc.semantic_identifier }}</div>
+            <div class="document-content">{{ doc.blurb }}</div>
+            <div class="document-score">Relevance: {{ (doc.score * 100).toFixed(1) }}%</div>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="empty-state" *ngIf="messages.length === 0">
+      Start a conversation by typing a message below
+    </div>
+
+    <div class="loading" *ngIf="isLoading">
+      Processing your request...
+    </div>
+
+    <div class="error" *ngIf="error">
+      {{ error }}
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <textarea 
+      class="search-input" 
+      [(ngModel)]="currentMessage"
+      placeholder="Type your message..."
+      (keydown)="onEnter($event)"
+      [disabled]="isLoading">
+    </textarea>
+    <button 
+      class="search-button" 
+      (click)="sendMessage()"
+      [disabled]="!currentMessage.trim() || isLoading">
+      Send
+    </button>
+    <button 
+      class="clear-button" 
+      (click)="clearChat()"
+      [disabled]="isLoading">
+      Clear
+    </button>
   </div>
 </div>
