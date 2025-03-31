@@ -1,0 +1,62 @@
+<div class="chat-container">
+  <div class="chat-header">
+    <h2>Onyx API Integration Demo</h2>
+    <div class="session-info">
+      <div *ngIf="hasSession" class="session-active">
+        <span class="status-dot active"></span>
+        Session Active: {{ sessionId ? maskSessionId(sessionId) : 'Unknown' }}
+      </div>
+      <div *ngIf="!hasSession" class="session-inactive">
+        <span class="status-dot inactive"></span>
+        No Active Session
+      </div>
+    </div>
+  </div>
+
+  <div class="api-demo-section">
+    <div class="curl-demo">
+      <button (click)="toggleCurl()" class="btn btn-secondary">
+        {{ showCurl ? 'Hide' : 'Show' }} curl Command
+      </button>
+      <div *ngIf="showCurl" class="curl-code">
+        <pre>{{ curlCommand }}</pre>
+        <p class="info-text">This curl command demonstrates how to create a session using the command line.</p>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button (click)="createSession()" class="btn btn-primary" [disabled]="isLoading">
+        Create New Session
+      </button>
+      <button *ngIf="hasSession" (click)="removeSession()" class="btn btn-danger" [disabled]="isLoading">
+        Remove Session
+      </button>
+    </div>
+  </div>
+
+  <div class="chat-interface" *ngIf="hasSession">
+    <div class="message-input">
+      <input 
+        type="text" 
+        [(ngModel)]="userMessage" 
+        placeholder="Type your message here..." 
+        [disabled]="isLoading"
+        (keyup.enter)="sendMessage()"
+      />
+      <button (click)="sendMessage()" class="btn btn-send" [disabled]="isLoading || !userMessage.trim()">
+        Send
+      </button>
+    </div>
+  </div>
+
+  <div class="response-section">
+    <h3>API Response:</h3>
+    <div class="response-content" [class.loading]="isLoading">
+      <div *ngIf="isLoading" class="loading-spinner"></div>
+      <div *ngIf="!isLoading && apiResponse" [innerHTML]="apiResponse"></div>
+      <div *ngIf="!isLoading && !apiResponse" class="no-response">
+        No response yet. Create a session and send a message to see the response.
+      </div>
+    </div>
+  </div>
+</div>

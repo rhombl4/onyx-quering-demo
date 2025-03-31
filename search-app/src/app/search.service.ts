@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Observable, of, delay, catchError } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { TokenService } from './auth/token.service';
 
 export interface SearchResult {
   id: number;
@@ -45,13 +47,75 @@ export class SearchService {
     }
   ];
 
-  constructor() { }
+  // In a real app, this would come from environment config
+  private apiUrl = 'https://api.example.com';
 
+  constructor(
+    private http: HttpClient,
+    private tokenService: TokenService
+  ) { }
+
+  /**
+   * Search for results using the API with authentication
+   * @param query Search query string
+   * @returns Observable of search results
+   */
   search(query: string): Observable<SearchResult[]> {
-    // Simulate network delay
+    // For demo purposes, we're using mock data
+    // In a real application, you would make an API call with the token
+    
+    // This demonstrates how the API call would be structured:
+    /*
+    const token = this.tokenService.getToken();
+    if (!token) {
+      console.error('No authentication token available');
+      return of([]);
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<SearchResult[]>(`${this.apiUrl}/search?q=${encodeURIComponent(query)}`, { headers })
+      .pipe(
+        catchError(error => {
+          console.error('Error fetching search results:', error);
+          return of([]);
+        })
+      );
+    */
+
+    // Using mock data for now
     return of(this.filterResults(query)).pipe(
       delay(500)
     );
+  }
+
+  /**
+   * Example of how to make an authenticated API call
+   * @param endpoint API endpoint
+   * @returns Observable of API response
+   */
+  private makeAuthenticatedRequest<T>(endpoint: string): Observable<T> {
+    const token = this.tokenService.getToken();
+    if (!token) {
+      console.error('No authentication token available');
+      return of({} as T);
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    return this.http.get<T>(`${this.apiUrl}/${endpoint}`, { headers })
+      .pipe(
+        catchError(error => {
+          console.error(`Error calling API endpoint ${endpoint}:`, error);
+          return of({} as T);
+        })
+      );
   }
 
   private filterResults(query: string): SearchResult[] {
