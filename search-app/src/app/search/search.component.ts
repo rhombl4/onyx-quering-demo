@@ -6,6 +6,8 @@ import { CommonModule } from '@angular/common';
 interface Document {
   title: string;
   content: string;
+  semantic_identifier: string;
+  document_id: string;
   score: number;
 }
 
@@ -13,7 +15,9 @@ interface MessageResponse {
   message_id: string;
   message: string;
   answer_piece: string;
-  top_documents?: Document[];
+  context_docs?: {
+    top_documents?: Document[];
+  };
   error?: string;
   is_done?: boolean;
   message_type?: string;
@@ -87,16 +91,26 @@ export class SearchComponent implements OnInit {
           message_id: response.message_id,
           parent_message: response.parent_message_id,
           message: response.message,
-          documents: response.top_documents
+          documents: response.context_docs?.top_documents
         });
+
+        // Log first 6 documents with their semantic identifiers and document IDs
+        console.log('First 6 top documents:');
+        response.context_docs?.top_documents?.slice(0, 6).forEach((doc, index) => {
+          console.log(`Document ${index + 1}:`, {
+            semantic_identifier: doc.semantic_identifier,
+            document_id: doc.document_id
+          });
+        });
+
         if (response.message) {
           const botMessage: Message = {
             id: response.message_id || Date.now().toString(),
             text: response.message,
             sender: 'bot',
-            documents: response.top_documents?.map(doc => ({
-              document_id: doc.title, // Using title as document_id since it's the closest match
-              semantic_identifier: doc.title,
+            documents: response.context_docs?.top_documents?.map(doc => ({
+              document_id: doc.document_id,
+              semantic_identifier: doc.semantic_identifier,
               blurb: doc.content,
               score: doc.score
             }))

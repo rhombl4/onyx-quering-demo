@@ -6,7 +6,7 @@ import { TokenService } from './token.service';
 })
 export class InitializationService {
   // The API token provided by the user
-  private readonly API_TOKEN = 'on_wL3D38FKRjiRxg6CtcmlO8hHcvS9cMpetKneTim8mPcpIu8B2HULk8e5JkUdXTkE0ZacHBTQ2pFSN1qSyaajxyzGf3EC-S55JBFtSB8okZwwGnRnsBK0j5W9opgOZYyz6airoZ5bQuxyqzqFip9fQRUFcCe06Bk6lN5p4ZRXBJaLnHPf1PB8maTpEkeBgCxGAVTqwhxS_bBHKzyOtkIivVBHNadfm6_XDtwVfyrrwHDKaPiA-DYSvBMFHBtw5OXC';
+  private readonly API_TOKEN = 'on_l7Y8x4BIb1fQwfqdkRpx_8UL8StKWs1VdEcUokYFul05Ar2TOLic74nXblYBmDor6RMILpvvMtBQK5IZuzLyp13-x_dpQFYDl1Mp1UZq8awlPQ0AgTw7h2eiHEi-mQTVvJSOuCeg-hw6sTrjwzZYftpSu_zjE_yaogfFwF2N6tlP8RYR2Tt-GhQgmKU1Ifr38U8fSY8CazTipH9hlsKGemrYjAX6fP2XWIxR4ZfpCqbJ0pTfV-87qm0GlGkGXKhs';
 
   constructor(private tokenService: TokenService) {}
 

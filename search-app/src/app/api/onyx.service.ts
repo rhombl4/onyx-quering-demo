@@ -5,23 +5,27 @@ import { CookieService } from 'ngx-cookie-service';
 import { TokenService } from '../auth/token.service';
 import { environment } from '../../environments/environment';
 
-interface ChatSessionResponse {
-  chat_session_id: string;
+interface Document {
+  title: string;
+  content: string;
+  semantic_identifier: string;
+  document_id: string;
+  score: number;
 }
 
 interface MessageResponse {
   message_id: string;
   answer_piece: string;
   message: string;
-  top_documents?: {
-    title: string;
-    content: string;
-    score: number;
-  }[];
+  context_docs?: {
+    top_documents?: Document[];
+  };
   error?: string;
-  is_done?: boolean;
-  message_type?: string;
   parent_message_id?: string;
+}
+
+interface ChatSessionResponse {
+  chat_session_id: string;
 }
 
 @Injectable({
@@ -109,7 +113,7 @@ export class OnyxService {
 
     return this.http.post<ChatSessionResponse>(
       `${this.API_URL}/chat/create-chat-session`,
-      { persona_id: 0 },
+      { persona_id: 1 },
       { headers }
     ).pipe(
       map(response => {
@@ -143,17 +147,19 @@ export class OnyxService {
     });
 
     const data = {
-      message,
+      message: `${message}`,
       chat_session_id: sessionId,
       parent_message_id: parentMessageId ?? null,
       file_descriptors: [],
-      prompt_id: 0,
+      prompt_id: 5,
       search_doc_ids: null,
       retrieval_options: {
         run_search: "always",
-        real_time: true,
+        real_time: false,
         enable_auto_detect_filters: false,
-        filters: {}
+        filters: {},
+        limit: 5,
+        dedupe_docs: true
       }
     };
 
